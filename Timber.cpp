@@ -1,6 +1,6 @@
 // Timber.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
-
+#include <sstream>
 #include <iostream>
 #include <SFML/Graphics.hpp>
 
@@ -61,7 +61,48 @@ int main()
     // Clock
     sf::Clock clock;
 
+    // Time bar
+    sf::RectangleShape timeBar;
+    float timeBarStartWidth = 400;
+    float timeBarHeight = 80;
+    timeBar.setSize(sf::Vector2f(timeBarStartWidth, timeBarHeight));
+    timeBar.setFillColor(sf::Color::Red);
+    timeBar.setPosition(1920 / 2.0f - timeBarStartWidth / 2.0f, 980);
+    // Time bar time
+    sf::Time gameTimeTotal;
+    float timeRemaining = 6.0f;
+    float timeBarWidthPerSecond = timeBarStartWidth / timeRemaining;
+
+    // Tracking if the game is running ot not
     bool paused = true;
+
+    // Text for Heads Up Display (HUD)
+    int score = 0;
+    sf::Font font;
+    font.loadFromFile("fonts/KOMIKAP_.ttf");
+    // Create text objects
+    sf::Text messageText;
+    sf::Text scoreText;
+    // Assign font object to text objects
+    messageText.setFont(font);
+    scoreText.setFont(font);
+    //Assign acutal message to text objects:
+    messageText.setString("Press Enter to Start!");
+    scoreText.setString("Score = 0");
+    //Set size of text
+    messageText.setCharacterSize(75);
+    scoreText.setCharacterSize(100);
+    //Assign color to message
+    messageText.setFillColor(sf::Color::White);
+    scoreText.setFillColor(sf::Color::White);
+    //POSITION texts
+    sf::FloatRect textRect = messageText.getLocalBounds();
+    messageText.setOrigin(textRect.left + textRect.width / 2.0f, 
+        textRect.top + textRect.height / 2.0f);
+    messageText.setPosition(1920 / 2.0f, 1080 / 2.0f);
+    scoreText.setPosition(20, 20);
+
+
 
 
 
@@ -81,6 +122,8 @@ int main()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Enter))
         {
             paused = false;
+            score = 0;
+            timeRemaining = 6;
         }
 
         /*
@@ -92,6 +135,24 @@ int main()
         {
             // Measure time
             sf::Time dt = clock.restart();
+
+            // REsize time bar according to elapsed time
+            timeRemaining -= dt.asSeconds();
+            timeBar.setSize(sf::Vector2f(timeBarWidthPerSecond * timeRemaining,
+                timeBarHeight));
+
+            if (timeRemaining <= 0.0f)
+            {
+                // Pause the game
+                paused = true;
+                //Change message shown to player
+                messageText.setString("Out of time!");
+                //Repositon text based on its new size
+                sf::FloatRect textRect = messageText.getLocalBounds();
+                messageText.setOrigin(textRect.left + textRect.width / 2.0f,
+                    textRect.top + textRect.height / 2.0f);
+                messageText.setPosition(1920 / 2.0f, 1080 / 2.0f);
+            }
 
             // Bee setup and drawing
             if (!beeActive)
@@ -185,6 +246,11 @@ int main()
                 }
 
             }
+
+            // Update score text
+            std::stringstream ss;
+            ss << "Score = " << score;
+            scoreText.setString(ss.str());
         }
         /*
         *********************************************
@@ -205,6 +271,17 @@ int main()
         window.draw(treeSprite);
         // Draw bee
         window.draw(beeSprite);
+
+        // Draw Text
+        window.draw(scoreText);
+
+        // Draw time bar
+        window.draw(timeBar);
+
+        if (paused)
+        {
+            window.draw(messageText);
+        }
 
         //Show on screen what we draw
         window.display();
