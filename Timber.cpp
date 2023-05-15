@@ -126,11 +126,49 @@ int main()
         branches[i].setOrigin(220, 40); //Set the origin at the center of the image
     }
 
-    updateBranches(20);
-    updateBranches(30);
-    updateBranches(40);
-    updateBranches(50);
-    updateBranches(60);
+    // Prepare the player
+    sf::Texture texturePlayer;
+    texturePlayer.loadFromFile("graphics/player.png");
+    sf::Sprite spritePlayer;
+    spritePlayer.setTexture(texturePlayer);
+    spritePlayer.setPosition(580, 720);
+
+    // Players position
+    side playerSide = side::LEFT;
+
+    // Prepare gravestone
+    sf::Texture textureRIP;
+    textureRIP.loadFromFile("graphics/rip.png");
+    sf::Sprite spriteRIP;
+    spriteRIP.setTexture(textureRIP);
+    spriteRIP.setPosition(600, 860);
+
+    // Prepare axe
+    sf::Texture textureAxe;
+    textureAxe.loadFromFile("graphics/axe.png");
+    sf::Sprite spriteAxe;
+    spriteAxe.setTexture(textureAxe);
+    spriteAxe.setPosition(700, 830);
+
+    // Axe lined up with tree
+    const float AXE_POSITION_LEFT = 700;
+    const float AXE_POSITION_RIGHT = 1075;
+
+    // Flying log, after having cut it
+    sf::Texture textureLog;
+    textureLog.loadFromFile("graphics/log.png");
+    sf::Sprite spriteLog;
+    spriteLog.setTexture(textureLog);
+    spriteLog.setPosition(810, 720);
+    bool logActive = false;
+    float logSpeedX = 1000;
+    float logSpeedY = -1500;
+
+    // Control player input
+    bool acceptInput = false;
+
+
+
     while (window.isOpen())
     {
         /*
@@ -149,6 +187,60 @@ int main()
             paused = false;
             score = 0;
             timeRemaining = 6;
+
+            // Make all branches disappear
+            for (int i = 1; i < NUM_BRANCHES; i++) {
+                branchPosition[i] = side::NONE;
+            }
+
+            // Hid gravestone
+            spriteLog.setPosition(5000, 5000);
+            // Move player into position
+            spritePlayer.setPosition(675, 660);
+
+            acceptInput = true;
+
+            
+        }
+
+        if (acceptInput) {
+            //some shit
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+            {
+                playerSide = side::RIGHT;
+                score++;
+                // Add to the amount of time remaining
+                timeRemaining += (2 / score) + .15;
+
+                spriteAxe.setPosition(AXE_POSITION_RIGHT,
+                    spriteAxe.getPosition().y);
+
+                spritePlayer.setPosition(1200, 720);
+
+                // Update branches
+                updateBranches(score); // We use as seed of the function the current score
+
+                // Set log flying to the left
+                spriteLog.setPosition(810, 720);
+                logSpeedX = -5000;
+                logActive = true;
+            }
+
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+                playerSide = side::LEFT;
+                score++;
+                timeRemaining += (2 / score) + 0.15;
+                spriteAxe.setPosition(AXE_POSITION_LEFT,
+                    spriteAxe.getPosition().y);
+                updateBranches(score);
+                spriteLog.setPosition(580, 720);
+                logSpeedX = 5000;
+                logActive = true;
+
+                acceptInput = false;
+
+
+            }
         }
 
         /*
@@ -323,6 +415,19 @@ int main()
 
         // Draw Tree
         window.draw(treeSprite);
+
+        // Draw player
+        window.draw(spritePlayer);
+
+        // Axe
+        window.draw(spriteAxe);
+
+        // Flying log
+        window.draw(spriteLog);
+
+        // Gravestone
+        window.draw(spriteRIP);
+
         // Draw bee
         window.draw(beeSprite);
 
