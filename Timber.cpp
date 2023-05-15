@@ -141,7 +141,7 @@ int main()
     textureRIP.loadFromFile("graphics/rip.png");
     sf::Sprite spriteRIP;
     spriteRIP.setTexture(textureRIP);
-    spriteRIP.setPosition(600, 860);
+    spriteRIP.setPosition(2000, 860);
 
     // Prepare axe
     sf::Texture textureAxe;
@@ -177,6 +177,20 @@ int main()
         *********************************************
         */
 
+        sf::Event event; 
+        
+        while (window.pollEvent(event)) // Registers OS events and puts them into the event object
+        {
+            if (event.type == sf::Event::KeyReleased && !paused)
+            {
+                // Get inputs again
+                acceptInput = true;
+                // Hide the axe again
+                spriteAxe.setPosition(2000, spriteAxe.getPosition().y);
+
+            }
+        }
+
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
         {
             window.close();
@@ -197,7 +211,7 @@ int main()
             spriteLog.setPosition(5000, 5000);
             // Move player into position
             spritePlayer.setPosition(675, 660);
-
+            spriteRIP.setPosition(2000, 660);
             acceptInput = true;
 
             
@@ -224,14 +238,17 @@ int main()
                 spriteLog.setPosition(810, 720);
                 logSpeedX = -5000;
                 logActive = true;
+
+                acceptInput = false;
             }
 
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
                 playerSide = side::LEFT;
                 score++;
-                timeRemaining += (2 / score) + 0.15;
+                timeRemaining += (2 / score) + .15;
                 spriteAxe.setPosition(AXE_POSITION_LEFT,
                     spriteAxe.getPosition().y);
+                spritePlayer.setPosition(580, 720);
                 updateBranches(score);
                 spriteLog.setPosition(580, 720);
                 logSpeedX = 5000;
@@ -387,6 +404,40 @@ int main()
                 {
                     branches[i].setPosition(-3000, -3000);
                 }
+            }
+
+            if (logActive)
+            {
+                spriteLog.setPosition(logSpeedX* dt.asSeconds() + spriteLog.getPosition().x,
+                    logSpeedY* dt.asSeconds() + spriteLog.getPosition().y);
+                
+                if (spriteLog.getPosition().x < -300 || spriteLog.getPosition().x > 2000)
+                {
+                    logActive = false;
+                }
+
+
+
+            }
+            // Is the player on the same side of the last log?
+            if (branchPosition[5] == playerSide)
+            {
+                // Player dies
+                paused = true;
+                acceptInput = false;
+
+                spriteRIP.setPosition(525, 760);
+
+                // Player hidden
+                spritePlayer.setPosition(2000, 660);
+
+                // Change text message
+                messageText.setString("DEAD!");
+                sf::FloatRect textRect = messageText.getLocalBounds();
+                messageText.setOrigin(textRect.left + textRect.width / 2.0f,
+                    textRect.top + textRect.height / 2.0f);
+                messageText.setPosition(1920 / 2.0f, 1080 / 2.0f);
+              
             }
 
 
